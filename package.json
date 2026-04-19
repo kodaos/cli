@@ -1,0 +1,24 @@
+{
+  "name": "@kodaos/cli",
+  "version": "0.0.0",
+  "description": "A CLI for managing the AI ​​ecosystem with Kodaos",
+  "keywords": [
+    "agents",
+    "ai",
+    "cli",
+    "kodaos",
+    "skills"
+  ],
+  "license": "MIT",
+  "author": "Kodaos (https://kodaos.com)",
+  "dependencies": {
+    "commander": "^14.0.3",
+    "ink": "^7.0.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "vite-plus": "^0.1.18",
+    "vitest": "^4.1.4"
+  },
+  "packageManager": "pnpm@10.33.0"
+}
