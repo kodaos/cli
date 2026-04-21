@@ -11,12 +11,20 @@ const program = new Command()
 
 program.name('kodaos').description('CLI for managing the AI ecosystem with Kodaos').version('0.0.0')
 
-program
+program.action(() => {
+  program.help()
+})
+
+const skillsCommand = program
   .command('skills')
   .description('Manage skills')
   .addCommand(createAddCommand())
   .addCommand(createRemoveCommand())
   .addCommand(createListCommand())
   .addCommand(createUpdateCommand())
+
+skillsCommand.action(() => {
+  skillsCommand.help()
+})
 
 program.parse()
