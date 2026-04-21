@@ -30,6 +30,12 @@ export async function writeLock(lock: SkillLock, global: boolean = false): Promi
   const lockPath = await getLockPath(global)
   const dir = dirname(lockPath)
   await mkdir(dir, { recursive: true })
+  if (!lock.agents) {
+    lock.agents = {
+      default: { skillsDir: '.agents/skills' },
+      'claude-code': { skillsDir: '.claude/skills' },
+    }
+  }
   await writeFile(lockPath, JSON.stringify(lock, null, 2), 'utf-8')
 }
 
@@ -38,9 +44,9 @@ export async function updateLockEntry(
   entry: SkillLockEntry,
   global: boolean = false,
 ): Promise<void> {
-  let lock = await readLock(global)
+  const lock = await readLock(global)
   if (!lock) {
-    lock = { version: '1.0', skills: {} }
+    throw new Error('Lock file not found')
   }
   lock.skills[skillName] = entry
   await writeLock(lock, global)
@@ -62,12 +68,26 @@ export async function computeFileHashFromPath(filePath: string): Promise<string>
   return computeFileHash(content)
 }
 
+export const DEFAULT_AGENTS = ['default', 'claude-code'] as const
+
 export function getSkillsDir(global: boolean): string {
   return join(global ? GLOBAL_ROOT : PROJECT_ROOT, '.agents', 'skills')
 }
 
 export function getClaudeSkillsDir(global: boolean): string {
   return join(global ? GLOBAL_ROOT : PROJECT_ROOT, '.claude', 'skills')
+}
+
+export function getAgentSkillsDir(agent: string, global: boolean): string {
+  const base = global ? GLOBAL_ROOT : PROJECT_ROOT
+  if (agent === 'claude-code') {
+    return join(base, '.claude', 'skills')
+  }
+  return join(base, '.agents', 'skills')
+}
+
+export function getDefaultAgents(): string[] {
+  return [...DEFAULT_AGENTS]
 }
 
 export async function ensureDir(dir: string): Promise<void> {

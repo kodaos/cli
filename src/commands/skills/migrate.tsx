@@ -1,5 +1,5 @@
 import { exec } from 'child_process'
-import { readFile, writeFile, mkdir } from 'fs/promises'
+import { readFile, mkdir } from 'fs/promises'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { promisify } from 'util'
@@ -111,7 +111,7 @@ export function createMigrateCommand(): Command {
             sourceType: 'github',
             source: entry.source,
             path: `skills/${skillName}`,
-            computedHash: entry.computedHash,
+            commitHash: entry.computedHash,
           }
         } else {
           failed.push(skillName)
@@ -124,6 +124,10 @@ export function createMigrateCommand(): Command {
     // Build the new lock (even if empty, write it)
     const newLock: SkillLock = {
       version: '1.0',
+      agents: {
+        default: { skillsDir: '.agents/skills' },
+        'claude-code': { skillsDir: '.claude/skills' },
+      },
       skills: migrated,
     }
 

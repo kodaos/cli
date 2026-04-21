@@ -25,7 +25,7 @@ function renderSkillListTable(skills: Record<string, unknown>): React.ReactEleme
           <Text bold>{name}</Text>
           <Text dimColor> Source: {(entry as { source: string }).source}</Text>
           <Text dimColor> Path: {(entry as { path: string }).path}</Text>
-          <Text dimColor> Hash: {(entry as { computedHash: string }).computedHash}</Text>
+          <Text dimColor> Hash: {(entry as { commitHash: string }).commitHash}</Text>
           <Newline />
         </Box>
       ))}

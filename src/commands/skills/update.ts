@@ -7,15 +7,8 @@ import { promisify } from 'util'
 import { Command } from 'commander'
 import { render } from 'ink'
 import inquirer from 'inquirer'
-import React from 'react'
 
-import {
-  readLock,
-  updateLockEntry,
-  getSkillsDir,
-  getClaudeSkillsDir,
-  computeFileHash,
-} from '../../skills/lock'
+import { readLock, updateLockEntry, getSkillsDir, computeFileHash } from '../../skills/lock'
 import { renderSuccess, renderError } from '../../skills/prompts'
 import { updateOptionsSchema } from '../../skills/schema'
 
@@ -120,7 +113,7 @@ export function createUpdateCommand(): Command {
 
 async function updateSingleSkill(
   skillName: string,
-  entry: { sourceType: string; source: string; path: string; computedHash: string },
+  entry: { sourceType: string; source: string; path: string; commitHash: string },
   global: boolean,
 ): Promise<void> {
   const skillsDir = getSkillsDir(global)
@@ -150,7 +143,7 @@ async function updateSingleSkill(
         sourceType: 'github',
         source: entry.source,
         path: entry.path,
-        computedHash: newHash,
+        commitHash: newHash,
       },
       global,
     )

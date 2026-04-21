@@ -61,7 +61,7 @@ export async function installSkill(
     sourceType: 'github',
     source: skill.source,
     path: skill.path,
-    computedHash: hash,
+    commitHash: hash,
   }
 
   await updateLockEntry(skill.name, lockEntry, global)

@@ -5,13 +5,21 @@
       "sourceType": "github",
       "source": "rolldown/tsdown",
       "path": "skills/tsdown",
-      "computedHash": "sha256:ce10b8969d6ed2db4ec18c5d6f708924d7d40e2f981343c55b11434fe9d5f335"
+      "commitHash": "f381323f26079d273693f9f8ec9a85a64cace1f59d3ccff2367eaa8f579a186f"
     },
     "vitest": {
       "sourceType": "github",
       "source": "antfu/skills",
       "path": "skills/vitest",
-      "computedHash": "sha256:87c8cf025987d1f1a0e9c0fd0b8605946a0ebd5478676471ce296d8f0adc0f07"
+      "commitHash": "669c7275f7e1379b06b2bcfa593603aead4c983b951c7e8edbc09640aa38d0a1"
+    }
+  },
+  "agents": {
+    "default": {
+      "skillsDir": ".agents/skills"
+    },
+    "claude-code": {
+      "skillsDir": ".claude/skills"
     }
   }
 }

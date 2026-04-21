@@ -22,8 +22,13 @@ export interface InstallOptions {
   list: boolean
 }
 
+export interface AgentConfig {
+  skillsDir: string
+}
+
 export interface SkillLock {
   version: '1.0'
+  agents: Record<string, AgentConfig>
   skills: Record<string, SkillLockEntry>
 }
 
@@ -31,7 +36,8 @@ export interface SkillLockEntry {
   sourceType: 'github'
   source: string
   path: string
-  computedHash: string
+  commitHash: string
+  agents?: string[]
 }
 
 export interface DiscoveredSkill {
