@@ -20,6 +20,7 @@
   ],
   "type": "module",
   "scripts": {
+    "dev": "tsx src/index.ts",
     "build": "vp pack",
     "test": "vp test"
   },
@@ -33,6 +34,7 @@
   "devDependencies": {
     "@tsdown/exe": "^0.21.9",
     "@types/react": "^19.2.14",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "vite-plus": "^0.1.18",
     "vitest": "^4.1.4"

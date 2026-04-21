@@ -25,6 +25,13 @@ export const updateOptionsSchema = z.object({
   yes: z.boolean().default(false),
 })
 
+export const migrateOptionsSchema = z.object({
+  platform: z.enum(['vercel']),
+  file: z.string().optional(),
+  global: z.boolean().default(false),
+})
+
 export type AddOptions = z.infer<typeof addOptionsSchema>
 export type RemoveOptions = z.infer<typeof removeOptionsSchema>
 export type UpdateOptions = z.infer<typeof updateOptionsSchema>
+export type MigrateOptions = z.infer<typeof migrateOptionsSchema>

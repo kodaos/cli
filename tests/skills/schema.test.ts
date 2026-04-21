@@ -4,6 +4,7 @@ import {
   addOptionsSchema,
   removeOptionsSchema,
   updateOptionsSchema,
+  migrateOptionsSchema,
 } from '../../src/skills/schema.js'
 
 describe('addOptionsSchema', () => {
@@ -84,5 +85,47 @@ describe('updateOptionsSchema', () => {
     expect(result.data?.global).toBe(false)
     expect(result.data?.project).toBe(false)
     expect(result.data?.yes).toBe(false)
+  })
+})
+
+describe('migrateOptionsSchema', () => {
+  it('parses vercel platform', () => {
+    const result = migrateOptionsSchema.safeParse({
+      platform: 'vercel',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects unsupported platform', () => {
+    const result = migrateOptionsSchema.safeParse({
+      platform: 'unknown',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts optional file path', () => {
+    const result = migrateOptionsSchema.safeParse({
+      platform: 'vercel',
+      file: '/path/to/lock.json',
+    })
+    expect(result.success).toBe(true)
+    expect(result.data?.file).toBe('/path/to/lock.json')
+  })
+
+  it('applies defaults', () => {
+    const result = migrateOptionsSchema.safeParse({
+      platform: 'vercel',
+    })
+    expect(result.success).toBe(true)
+    expect(result.data?.global).toBe(false)
+  })
+
+  it('accepts global flag', () => {
+    const result = migrateOptionsSchema.safeParse({
+      platform: 'vercel',
+      global: true,
+    })
+    expect(result.success).toBe(true)
+    expect(result.data?.global).toBe(true)
   })
 })

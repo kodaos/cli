@@ -2,10 +2,11 @@
 
 import { Command } from 'commander'
 
-import { createAddCommand } from './commands/skills/add'
-import { createListCommand } from './commands/skills/list'
-import { createRemoveCommand } from './commands/skills/remove'
-import { createUpdateCommand } from './commands/skills/update'
+import { createAddCommand } from './commands/skills/add.js'
+import { createListCommand } from './commands/skills/list.js'
+import { createMigrateCommand } from './commands/skills/migrate.js'
+import { createRemoveCommand } from './commands/skills/remove.js'
+import { createUpdateCommand } from './commands/skills/update.js'
 
 const program = new Command()
 
@@ -22,6 +23,7 @@ const skillsCommand = program
   .addCommand(createRemoveCommand())
   .addCommand(createListCommand())
   .addCommand(createUpdateCommand())
+  .addCommand(createMigrateCommand())
 
 skillsCommand.action(() => {
   skillsCommand.help()

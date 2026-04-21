@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "skills": {
+    "tsdown": {
+      "sourceType": "github",
+      "source": "rolldown/tsdown",
+      "path": "skills/tsdown",
+      "computedHash": "sha256:ce10b8969d6ed2db4ec18c5d6f708924d7d40e2f981343c55b11434fe9d5f335"
+    },
+    "vitest": {
+      "sourceType": "github",
+      "source": "antfu/skills",
+      "path": "skills/vitest",
+      "computedHash": "sha256:87c8cf025987d1f1a0e9c0fd0b8605946a0ebd5478676471ce296d8f0adc0f07"
+    }
+  }
+}

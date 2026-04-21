@@ -9,7 +9,7 @@ import type { SkillLock, SkillLockEntry } from './types'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PROJECT_ROOT = process.cwd()
 const GLOBAL_ROOT = join(homedir(), '.kodaos')
-const LOCK_FILE = 'skills-lock.json'
+const LOCK_FILE = 'kodaos-lock.json'
 
 export async function getLockPath(global: boolean): Promise<string> {
   const base = global ? GLOBAL_ROOT : PROJECT_ROOT
