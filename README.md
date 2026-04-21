@@ -8,14 +8,13 @@ for future modules such as `agents`, `workflows`, and `integrations`.
 
 ## Phase 1 Scope (Skills Management)
 
-Phase 1 only covers the `skills` lifecycle. Recommended priority commands:
+Phase 1 covers the full `skills` lifecycle. Available commands:
 
-- `skills list`: list skills
-- `skills view <id>`: view skill details
-- `skills create`: create a skill
-- `skills update <id>`: update a skill
-- `skills delete <id>`: delete a skill
-- `skills validate <path>`: validate a skill definition
+- `skills list` (`ls`): List installed skills
+- `skills add <source>`: Add skills from a GitHub repository
+- `skills remove` (`rm`) `[skills...]`: Remove installed skills
+- `skills update` `[skills...]`: Update installed skills to latest versions
+- `skills migrate <platform>`: Migrate skills from external platforms
 
 ## Tech Stack
 
