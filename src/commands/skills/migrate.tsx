@@ -31,6 +31,7 @@ interface VercelLock {
 async function cloneSkillSource(source: string): Promise<string> {
   const destDir = join(TEMP_DIR, `skill-${source.replace('/', '-')}-${Date.now()}`)
   await mkdir(destDir, { recursive: true })
+  console.log(`Cloning ${source}...`)
   await execAsync(`git clone --depth 1 https://github.com/${source} "${destDir}"`)
   return destDir
 }

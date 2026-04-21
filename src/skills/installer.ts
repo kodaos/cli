@@ -45,6 +45,7 @@ export async function installSkill(
   if (copy) {
     await execAsync(`cp -r "${sourcePath}" "${targetSkillDir}"`)
   } else {
+    console.log(`Cloning ${skill.name}...`)
     await execAsync(`git clone --depth 1 "${sourcePath}" "${targetSkillDir}"`)
   }
 
@@ -73,6 +74,7 @@ async function fetchSkillSource(skill: DiscoveredSkill): Promise<string> {
   await mkdir(destDir, { recursive: true })
 
   const cloneUrl = `https://github.com/${owner}/${repo}`
+  console.log(`Cloning ${owner}/${repo}...`)
   await execAsync(`git clone --depth 1 ${cloneUrl} "${destDir}"`)
 
   const skillPath = join(destDir, skill.path)

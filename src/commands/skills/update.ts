@@ -124,7 +124,7 @@ async function updateSingleSkill(
   const tempDir = join(__dirname, `../../.temp/update-${Date.now()}`)
 
   try {
-    // Clone latest
+    console.log(`Updating ${skillName}...`)
     const cloneUrl = `https://github.com/${owner}/${repo}`
     await execAsync(`git clone --depth 1 "${cloneUrl}" "${tempDir}"`)
 

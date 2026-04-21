@@ -47,3 +47,7 @@ export interface DiscoveredSkill {
   source: string
   sourceType: 'github'
 }
+
+export interface SkillsIndexFile {
+  skills: string[]
+}

@@ -4,7 +4,7 @@ import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { promisify } from 'util'
 
-import type { SkillSource, DiscoveredSkill } from './types'
+import type { SkillSource, DiscoveredSkill, SkillsIndexFile } from './types'
 
 const execAsync = promisify(exec)
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -89,21 +89,50 @@ async function cloneRepo(source: SkillSource): Promise<string> {
 }
 
 async function findSkillDirs(basePath: string): Promise<string[]> {
-  const dirs: string[] = []
-  const searchPaths = ['', 'skills', 'skills/.curated', 'skills/.experimental', 'skills/.system']
+  const skillsDir = join(basePath, 'skills')
+  const indexFile = join(skillsDir, 'index.json')
 
-  for (const sp of searchPaths) {
-    const fullPath = join(basePath, sp)
-    try {
-      await access(fullPath)
-      const entries = await readdir(fullPath, { withFileTypes: true })
-      for (const entry of entries) {
-        if (entry.isDirectory()) {
-          dirs.push(join(fullPath, entry.name))
-        }
+  // Check if index.json exists
+  try {
+    const content = await readFile(indexFile, 'utf-8')
+    const index: SkillsIndexFile = JSON.parse(content)
+    const dirs: string[] = []
+
+    for (const skillPath of index.skills) {
+      const fullPath = join(skillsDir, skillPath)
+      const skillFile = join(fullPath, 'SKILL.md')
+      try {
+        await access(skillFile)
+        dirs.push(fullPath)
+      } catch {
+        // SKILL.md not found in this path, skip
       }
-    } catch {
-      // Path doesn't exist
+    }
+    return dirs
+  } catch {
+    // index.json not found or invalid, fall back to scanning skills/* subdirectories
+  }
+
+  // Default: scan skills/* subdirectories with SKILL.md
+  try {
+    await access(skillsDir)
+  } catch {
+    return []
+  }
+
+  const entries = await readdir(skillsDir, { withFileTypes: true })
+  const dirs: string[] = []
+
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const skillPath = join(skillsDir, entry.name)
+      const skillFile = join(skillPath, 'SKILL.md')
+      try {
+        await access(skillFile)
+        dirs.push(skillPath)
+      } catch {
+        // SKILL.md not found, skip
+      }
     }
   }
 
