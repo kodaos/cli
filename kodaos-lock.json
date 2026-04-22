@@ -1,6 +1,12 @@
 {
   "version": "1.0",
   "skills": {
+    "skill-creator": {
+      "sourceType": "github",
+      "source": "anthropics/skills",
+      "path": "skills/skill-creator",
+      "commitHash": "5ea13a6d9f0d4bb694405d79acd00cadec0d21bb138c4dd10fcf3c500cb835c2"
+    },
     "tsdown": {
       "sourceType": "github",
       "source": "rolldown/tsdown",
