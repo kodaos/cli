@@ -37,7 +37,7 @@ The CLI currently focuses on **skills** management — reusable AI capabilities 
 | `kodaos skills add <source>`       | -     | Add skills from a GitHub repository    |
 | `kodaos skills remove <skills...>` | `rm`  | Remove installed skills                |
 | `kodaos skills update [skills...]` | -     | Update skills to latest versions       |
-| `kodaos skills migrate <platform>` | -     | Migrate skills from external platforms |
+| `kodaos skills migrate [platform]` | -     | Migrate skills from external platforms |
 
 ### Examples
 
@@ -58,7 +58,7 @@ kodaos skills update
 kodaos skills update skill-a skill-b
 
 # Migrate skills from another platform
-kodaos skills migrate cursor
+kodaos skills migrate vercel
 ```
 
 ## Quick Start

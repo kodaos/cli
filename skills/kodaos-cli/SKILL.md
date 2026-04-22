@@ -88,7 +88,7 @@ kodaos skills update my-skill --yes
 - `-p, --project` — Update project skills
 - `-y, --yes` — Skip confirmation prompts
 
-### `kodaos skills migrate <platform>`
+### `kodaos skills migrate [platform]`
 
 Migrate skills from external platforms.
 
@@ -99,7 +99,7 @@ kodaos skills migrate vercel ./skills-lock.json --global
 
 **Arguments:**
 
-- `<platform>` — Platform to migrate from (currently supports `vercel`)
+- `[platform]` — Platform to migrate from (currently supports `vercel`)
 - `[file]` — Source lock file path (defaults to `skills-lock.json`)
 
 **Options:**
