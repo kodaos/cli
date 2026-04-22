@@ -9,6 +9,13 @@ import React from 'react'
 
 import { uninstallSkill } from '../../skills/installer'
 import { readLock, removeLockEntry, getSkillsDir } from '../../skills/lock'
+import {
+  EXIT_CODES,
+  isJsonMode,
+  formatJsonSuccess,
+  exitWithError,
+  type OutputMode,
+} from '../../skills/output'
 import { renderSuccess, renderError } from '../../skills/prompts'
 import { removeOptionsSchema } from '../../skills/schema'
 
@@ -22,22 +29,35 @@ export function createRemoveCommand(): Command {
     .option('-g, --global', 'Remove from global directory')
     .option('-y, --yes', 'Skip confirmation prompts')
     .option('--all', 'Remove all installed skills')
+    .option('-o, --output <mode>', 'Output format: json or text', 'text')
+    .option('--dry-run', 'Preview what would be removed without making changes')
 
   cmd.action(async (skills: string[], opts: Record<string, unknown>) => {
     const parsed = removeOptionsSchema.safeParse({ skills, ...opts })
     if (!parsed.success) {
       const error = parsed.error.issues[0]
-      console.error(`Validation error: ${error.path.join('.')} - ${error.message}`)
-      process.exit(1)
+      exitWithError(
+        (opts.output as OutputMode) ?? 'text',
+        EXIT_CODES.VALIDATION_ERROR,
+        `Validation error: ${error.path.join('.')} - ${error.message}`,
+        { field: error.path.join('.') },
+        `Provide a valid ${error.path.join('.') || 'value'}`,
+      )
     }
 
     const options = parsed.data
+    const output: OutputMode = options.output
 
     try {
       const lock = await readLock(options.global)
 
       if (!lock || Object.keys(lock.skills).length === 0) {
-        render(renderError('No skills installed.'))
+        // Idempotent: no skills installed = success
+        if (isJsonMode(output)) {
+          console.log(formatJsonSuccess({ success: true, message: 'No skills installed.' }))
+        } else {
+          render(renderSuccess('No skills installed.'))
+        }
         return
       }
 
@@ -50,8 +70,11 @@ export function createRemoveCommand(): Command {
       } else if (options.skills && options.skills.length > 0) {
         toRemove = options.skills.filter((s) => installedSkills.includes(s))
         if (toRemove.length === 0) {
-          render(renderError('None of the specified skills are installed.'))
-          process.exit(1)
+          exitWithError(
+            output,
+            EXIT_CODES.VALIDATION_ERROR,
+            'None of the specified skills are installed.',
+          )
         }
       } else {
         // Interactive selection
@@ -66,13 +89,31 @@ export function createRemoveCommand(): Command {
           ])
           toRemove = answer.selected
           if (toRemove.length === 0) {
-            render(renderSuccess('No skills selected.'))
+            if (isJsonMode(output)) {
+              console.log(formatJsonSuccess({ success: true, message: 'No skills selected.' }))
+            } else {
+              render(renderSuccess('No skills selected.'))
+            }
             return
           }
         } else {
-          render(renderError('No skills specified. Use --all or specify skills to remove.'))
-          process.exit(1)
+          exitWithError(
+            output,
+            EXIT_CODES.VALIDATION_ERROR,
+            'No skills specified. Use --all or specify skills to remove.',
+          )
         }
+      }
+
+      // Dry-run mode
+      if (options['dry-run']) {
+        const dryRunResult = {
+          action: 'remove',
+          wouldRemove: toRemove,
+          total: toRemove.length,
+        }
+        console.log(formatJsonSuccess(dryRunResult))
+        return
       }
 
       // Confirm if not --yes
@@ -86,22 +127,37 @@ export function createRemoveCommand(): Command {
           },
         ])
         if (!answer.confirm) {
-          render(renderSuccess('Cancelled.'))
+          if (isJsonMode(output)) {
+            console.log(formatJsonSuccess({ success: true, message: 'Cancelled.' }))
+          } else {
+            render(renderSuccess('Cancelled.'))
+          }
           return
         }
       }
 
       // Remove each skill
+      const removed: string[] = []
       for (const skillName of toRemove) {
         await uninstallSkill(skillName, { global: options.global })
         await removeLockEntry(skillName, options.global)
+        removed.push(skillName)
       }
 
-      render(renderSuccess(`Removed ${toRemove.length} skill(s)`))
+      const result = { success: true, removed, total: toRemove.length }
+      if (isJsonMode(output)) {
+        console.log(formatJsonSuccess(result))
+      } else {
+        render(renderSuccess(`Removed ${removed.length} skill(s)`))
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      render(renderError(message))
-      process.exit(1)
+      if (isJsonMode(output)) {
+        exitWithError(output, EXIT_CODES.GENERAL_ERROR, message)
+      } else {
+        render(renderError(message))
+        process.exit(EXIT_CODES.GENERAL_ERROR)
+      }
     }
   })
 

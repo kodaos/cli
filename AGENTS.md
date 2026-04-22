@@ -69,6 +69,59 @@ When adding any CLI command, all of the following are required:
 - Baseline Vitest tests (success + critical failure)
 - Relevant documentation update (at least README or command docs)
 
+## Agent Interaction Rules
+
+All commands must support machine-to-machine interaction patterns.
+
+### Output Modes
+
+- Every command must support `--output` / `-o` option with values `json` or `text`.
+- JSON output is the primary format for programmatic consumption.
+- Text output is for human readability; it may use ANSI colors and interactive elements.
+- JSON output schema must be documented in the command's inline help.
+
+### Exit Codes
+
+Commands must return standardized exit codes for machine parsing:
+
+| Code | Meaning                      |
+| ---- | ---------------------------- |
+| 0    | Success                      |
+| 1    | General error                |
+| 2    | Validation / parameter error |
+| 3    | Network error                |
+| 4    | File system error            |
+| 5    | Configuration error          |
+
+### Dry-run Mode
+
+- Commands that modify state must support `--dry-run` option.
+- In dry-run mode: command validates inputs and returns expected changes without applying them.
+- Dry-run output is always JSON, describing what would happen.
+
+### Idempotency
+
+State-modifying commands must be idempotent:
+
+- `kodaos skills add <skill>`: if skill already installed, return success without error.
+- `kodaos skills remove <skill>`: if skill not installed, return success without error.
+- `kodaos skills update [skill]`: if skill is already at latest version, return success.
+
+### Agent Error Format
+
+Errors must follow this schema when output is JSON:
+
+```typescript
+interface AgentError {
+  code: string // Error code, e.g. "VALIDATION_ERROR"
+  message: string // Human-readable description
+  details?: unknown // Additional context
+  suggestion?: string // How to fix the error
+}
+```
+
+In text mode, errors should still be informative but may use freeform formatting.
+
 ## Acceptance Criteria
 
 Before submitting, confirm all conditions below:
@@ -77,3 +130,11 @@ Before submitting, confirm all conditions below:
 - Validation errors are pinpointed and actionable
 - Baseline tests exist and are runnable
 - Documentation is consistent with implementation and not stale
+
+### Agent Interaction Criteria
+
+- All commands support `--output json` mode with documented schema
+- All commands return standardized exit codes
+- All state-modifying commands support `--dry-run`
+- All state-modifying commands are idempotent
+- Error responses follow AgentError schema in JSON mode

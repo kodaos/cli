@@ -73,3 +73,64 @@ kodaos skills migrate vercel
 - **ink** — Terminal UI rendering
 - **zod** — Input validation
 - **vitest** — Testing framework
+
+## Agent Interaction
+
+All commands support machine-to-machine interaction through structured output and standardized exit codes.
+
+### Output Modes
+
+Use `--output` (or `-o`) to control output format:
+
+- `text` (default) — Human-readable output with ANSI colors
+- `json` — Machine-readable structured output
+
+```bash
+# Human-readable output (default)
+kodaos skills list
+
+# JSON output for scripting/AI agents
+kodaos skills list -o json
+```
+
+### Dry-run Mode
+
+State-modifying commands support `--dry-run` to preview changes without applying them:
+
+```bash
+kodaos skills add username/repo --dry-run
+kodaos skills remove my-skill --dry-run
+kodaos skills update --dry-run
+```
+
+### Exit Codes
+
+| Code | Meaning                      |
+| ---- | ---------------------------- |
+| 0    | Success                      |
+| 1    | General error                |
+| 2    | Validation / parameter error |
+| 3    | Network error                |
+| 4    | File system error            |
+| 5    | Configuration error          |
+
+### JSON Output Schema
+
+When using `--output json`, errors follow this schema:
+
+```json
+{
+  "code": "VALIDATION_ERROR",
+  "message": "Human-readable error message",
+  "details": {},
+  "suggestion": "How to fix the error"
+}
+```
+
+### Idempotency
+
+All state-modifying commands are idempotent:
+
+- `kodaos skills add <skill>` — If already installed, returns success
+- `kodaos skills remove <skill>` — If not installed, returns success
+- `kodaos skills update [skill]` — If already at latest, returns success

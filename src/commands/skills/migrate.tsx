@@ -9,6 +9,13 @@ import { render } from 'ink'
 import React from 'react'
 
 import { writeLock } from '../../skills/lock'
+import {
+  EXIT_CODES,
+  isJsonMode,
+  formatJsonSuccess,
+  exitWithError,
+  type OutputMode,
+} from '../../skills/output'
 import { renderSuccess, renderError } from '../../skills/prompts'
 import { migrateOptionsSchema } from '../../skills/schema'
 import type { SkillLock, SkillLockEntry } from '../../skills/types'
@@ -61,6 +68,8 @@ export function createMigrateCommand(): Command {
     .argument('[file]', 'Source lock file path (defaults to skills-lock.json in current directory)')
     .option('-g, --global', 'Write to global lock file')
     .option('-y, --yes', 'Skip confirmation prompts')
+    .option('-o, --output <mode>', 'Output format: json or text', 'text')
+    .option('--dry-run', 'Preview what would be migrated without making changes')
 
   cmd.action(
     async (
@@ -69,22 +78,34 @@ export function createMigrateCommand(): Command {
       opts: Record<string, unknown>,
     ) => {
       if (!platform) {
-        console.error('Available platforms: vercel')
-        process.exit(1)
+        exitWithError(
+          (opts.output as OutputMode) ?? 'text',
+          EXIT_CODES.VALIDATION_ERROR,
+          'Available platforms: vercel',
+          { availablePlatforms: ['vercel'] },
+          'Specify a platform: kodaos skills migrate vercel',
+        )
       }
 
       const parsed = migrateOptionsSchema.safeParse({ platform, file, ...opts })
       if (!parsed.success) {
         const error = parsed.error.issues[0]
-        console.error(`Validation error: ${error.path.join('.')} - ${error.message}`)
-        process.exit(1)
+        exitWithError(
+          (opts.output as OutputMode) ?? 'text',
+          EXIT_CODES.VALIDATION_ERROR,
+          `Validation error: ${error.path.join('.')} - ${error.message}`,
+        )
       }
 
       const options = parsed.data
+      const output: OutputMode = options.output
 
       if (options.platform !== 'vercel') {
-        render(renderError(`Unsupported platform: ${options.platform}`))
-        process.exit(1)
+        exitWithError(
+          output,
+          EXIT_CODES.VALIDATION_ERROR,
+          `Unsupported platform: ${options.platform}`,
+        )
       }
 
       const sourceFile = options.file || 'skills-lock.json'
@@ -96,11 +117,10 @@ export function createMigrateCommand(): Command {
         vercelLock = JSON.parse(content) as VercelLock
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-          render(renderError(`File not found: ${sourceFile}`))
+          exitWithError(output, EXIT_CODES.FILE_SYSTEM_ERROR, `File not found: ${sourceFile}`)
         } else {
-          render(renderError(`Failed to read file: ${sourceFile}`))
+          exitWithError(output, EXIT_CODES.FILE_SYSTEM_ERROR, `Failed to read file: ${sourceFile}`)
         }
-        process.exit(1)
       }
 
       // Migrate each skill from its own source repository
@@ -132,6 +152,20 @@ export function createMigrateCommand(): Command {
         }
       }
 
+      // Dry-run mode
+      if (options['dry-run']) {
+        const dryRunResult = {
+          action: 'migrate',
+          platform: options.platform,
+          sourceFile,
+          wouldMigrate: Object.keys(migrated),
+          failed,
+          total: Object.keys(migrated).length,
+        }
+        console.log(formatJsonSuccess(dryRunResult))
+        return
+      }
+
       // Build the new lock (even if empty, write it)
       const newLock: SkillLock = {
         version: '1.0',
@@ -146,10 +180,22 @@ export function createMigrateCommand(): Command {
       await writeLock(newLock, options.global)
 
       // Output results
-      render(<MigrateView migrated={migrated} global={options.global} />)
+      const result = {
+        success: true,
+        migrated: Object.keys(migrated),
+        failed,
+        total: skillNames.length,
+        message: `Migrated ${Object.keys(migrated).length}/${skillNames.length} skill(s)`,
+      }
+
+      if (isJsonMode(output)) {
+        console.log(formatJsonSuccess(result))
+      } else {
+        render(<MigrateView migrated={migrated} global={options.global} />)
+      }
 
       // Also output failed skills via console to ensure visibility
-      if (failed.length > 0) {
+      if (failed.length > 0 && !isJsonMode(output)) {
         console.error(`Manual install required for: ${failed.join(', ')}`)
       }
     },

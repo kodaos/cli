@@ -5,6 +5,14 @@ import React from 'react'
 
 import { parseGitHubSource, fetchGitHubSkills } from '../../skills/github'
 import { installSkill } from '../../skills/installer'
+import { readLock } from '../../skills/lock'
+import {
+  EXIT_CODES,
+  isJsonMode,
+  formatJsonSuccess,
+  exitWithError,
+  type OutputMode,
+} from '../../skills/output'
 import { renderSkillList, renderSuccess, renderError } from '../../skills/prompts'
 import { addOptionsSchema } from '../../skills/schema'
 
@@ -17,28 +25,39 @@ export function createAddCommand(): Command {
     .option('-y, --yes', 'Skip confirmation prompts')
     .option('--copy', 'Copy files instead of symlinking')
     .option('-g, --global', 'Install to global directory instead of project')
+    .option('-o, --output <mode>', 'Output format: json or text', 'text')
+    .option('--dry-run', 'Preview what would be installed without making changes')
 
   cmd.action(async (source: string, opts: Record<string, unknown>) => {
     const parsed = addOptionsSchema.safeParse({ source, ...opts })
     if (!parsed.success) {
       const error = parsed.error.issues[0]
-      console.error(`Validation error: ${error.path.join('.')} - ${error.message}`)
-      process.exit(1)
+      exitWithError(
+        (opts.output as OutputMode) ?? 'text',
+        EXIT_CODES.VALIDATION_ERROR,
+        `Validation error: ${error.path.join('.')} - ${error.message}`,
+        { field: error.path.join('.') },
+        `Provide a valid ${error.path.join('.') || 'value'}`,
+      )
     }
 
     const options = parsed.data
+    const output: OutputMode = options.output
 
     try {
       const skillSource = parseGitHubSource(source)
       const skills = await fetchGitHubSkills(skillSource)
 
       if (skills.length === 0) {
-        console.error('No skills found in the repository.')
-        process.exit(1)
+        exitWithError(output, EXIT_CODES.VALIDATION_ERROR, 'No skills found in the repository.')
       }
 
       if (options.list) {
-        render(renderSkillList(skills))
+        if (isJsonMode(output)) {
+          console.log(formatJsonSuccess({ skills }))
+        } else {
+          render(renderSkillList(skills))
+        }
         return
       }
 
@@ -48,8 +67,46 @@ export function createAddCommand(): Command {
         : skills
 
       if (toInstall.length === 0) {
-        console.error('No matching skills found.')
-        process.exit(1)
+        exitWithError(output, EXIT_CODES.VALIDATION_ERROR, 'No matching skills found.')
+      }
+
+      // Idempotency: check which skills are already installed
+      const lock = await readLock(options.global)
+      const alreadyInstalled = toInstall.filter((s) => lock?.skills[s.name])
+      const newInstalls = toInstall.filter((s) => !lock?.skills[s.name])
+
+      // Dry-run mode
+      if (options['dry-run']) {
+        const dryRunResult = {
+          action: 'install',
+          source,
+          wouldInstall: newInstalls.map((s) => s.name),
+          alreadyInstalled: alreadyInstalled.map((s) => s.name),
+          skipped: alreadyInstalled.length > 0,
+          message:
+            alreadyInstalled.length > 0
+              ? `${alreadyInstalled.length} skill(s) already installed`
+              : `Would install ${newInstalls.length} skill(s)`,
+        }
+        console.log(formatJsonSuccess(dryRunResult))
+        return
+      }
+
+      // Idempotent: skip already installed skills
+      if (alreadyInstalled.length > 0 && newInstalls.length === 0) {
+        // All skills already installed - return success
+        if (isJsonMode(output)) {
+          console.log(
+            formatJsonSuccess({
+              success: true,
+              message: 'All specified skills are already installed',
+              skills: alreadyInstalled.map((s) => s.name),
+            }),
+          )
+        } else {
+          render(renderSuccess(`All specified skills are already installed.`))
+        }
+        return
       }
 
       // Interactive prompts if not using --yes
@@ -73,16 +130,37 @@ export function createAddCommand(): Command {
         installOptions = { ...installOptions, ...answers }
       }
 
-      // Install each skill
-      for (const skill of toInstall) {
+      // Install new skills (skip already installed)
+      const installed: string[] = []
+      for (const skill of newInstalls) {
         await installSkill(skill, installOptions)
+        installed.push(skill.name)
       }
 
-      render(renderSuccess(`Installed ${toInstall.length} skill(s)`))
+      const result = {
+        success: true,
+        installed,
+        alreadyInstalled: alreadyInstalled.map((s) => s.name),
+        total: toInstall.length,
+      }
+
+      if (isJsonMode(output)) {
+        console.log(formatJsonSuccess(result))
+      } else {
+        const msg =
+          alreadyInstalled.length > 0
+            ? `Installed ${installed.length} skill(s) (${alreadyInstalled.length} already installed)`
+            : `Installed ${installed.length} skill(s)`
+        render(renderSuccess(msg))
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      render(renderError(message))
-      process.exit(1)
+      if (isJsonMode(output)) {
+        exitWithError(output, EXIT_CODES.GENERAL_ERROR, message)
+      } else {
+        render(renderError(message))
+        process.exit(EXIT_CODES.GENERAL_ERROR)
+      }
     }
   })
 
