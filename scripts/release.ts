@@ -3,9 +3,9 @@ import { versionBump } from 'bumpp'
 function main() {
   void versionBump({
     preid: 'beta',
-    commit: false,
-    tag: false,
-    push: false,
+    commit: true,
+    tag: true,
+    push: true,
     all: true,
     confirm: true,
     execute: 'pnpm build',
