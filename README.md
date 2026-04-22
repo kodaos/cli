@@ -1,62 +1,75 @@
 # Kodaos CLI
 
-`@kodaos/cli` is a command-line tool for managing AI ecosystem capabilities.
+A command-line tool for managing AI ecosystem capabilities.
 
-Phase 1 focuses on `skills` management. The goal is to establish a command
-system that is extensible, testable, and maintainable, forming the foundation
-for future modules such as `agents`, `workflows`, and `integrations`.
+## What is this?
 
-## Phase 1 Scope (Skills Management)
+Kodaos CLI helps you manage AI agents, skills, and workflows from your terminal. It provides a modular command system for discovering, installing, and managing AI capabilities.
 
-Phase 1 covers the full `skills` lifecycle. Available commands:
+## Installation
 
-- `skills list` (`ls`): List installed skills
-- `skills add <source>`: Add skills from a GitHub repository
-- `skills remove` (`rm`) `[skills...]`: Remove installed skills
-- `skills update` `[skills...]`: Update installed skills to latest versions
-- `skills migrate <platform>`: Migrate skills from external platforms
+```bash
+# Install globally via npm
+npm install -g @kodaos/cli
+
+# Or via pnpm
+pnpm add -g @kodaos/cli
+
+# Or via yarn
+yarn global add @kodaos/cli
+```
+
+After installation, run:
+
+```bash
+kodaos --help
+```
+
+## Capabilities
+
+### Skills Management
+
+The CLI currently focuses on **skills** management — reusable AI capabilities that can be installed and shared.
+
+| Command                            | Alias | Description                            |
+| ---------------------------------- | ----- | -------------------------------------- |
+| `kodaos skills list`               | `ls`  | List installed skills                  |
+| `kodaos skills add <source>`       | -     | Add skills from a GitHub repository    |
+| `kodaos skills remove <skills...>` | `rm`  | Remove installed skills                |
+| `kodaos skills update [skills...]` | -     | Update skills to latest versions       |
+| `kodaos skills migrate <platform>` | -     | Migrate skills from external platforms |
+
+### Examples
+
+```bash
+# List all installed skills
+kodaos skills ls
+
+# Add a skill from a GitHub repo
+kodaos skills add username/repo
+
+# Remove a skill
+kodaos skills rm my-skill
+
+# Update all skills
+kodaos skills update
+
+# Update specific skills
+kodaos skills update skill-a skill-b
+
+# Migrate skills from another platform
+kodaos skills migrate cursor
+```
+
+## Quick Start
+
+1. Install the CLI (see Installation above)
+2. Run `kodaos skills ls` to see installed skills
+3. Run `kodaos skills add <source>` to add new capabilities
 
 ## Tech Stack
 
-- `commander`: command definitions, argument parsing, `--help` output
-- `ink`: terminal UI rendering and interaction feedback
-- `zod`: command argument and input validation
-- `vitest`: baseline command-level testing
-
-## CLI Design Principles
-
-### 1) Every Command Must Have Clear Feedback
-
-Each command must provide clear, actionable feedback:
-
-- Success feedback: clearly states the result
-- Failure feedback: clearly states the reason
-- Guidance feedback: clearly states the next action
-
-Avoid generic messages like "unknown error" or "invalid parameter". Feedback
-must point to a specific parameter and/or a concrete recovery action whenever
-possible.
-
-### 2) Every Parameter Must Be Validated with Zod
-
-All command inputs must be defined in a `zod` schema and validated (for example,
-via `safeParse`). Validation failures should include:
-
-- The failing parameter name or field path
-- A clear human-readable error explanation
-- An actionable fix suggestion (example value or valid range)
-
-### 3) Every Command Must Have Baseline Vitest Tests
-
-Each command must include at least one baseline test set, covering:
-
-- Success path (valid input -> expected behavior)
-- Critical failure path (invalid input -> clear validation error)
-
-## Docs and Conventions
-
-- Project overview and collaboration entry point: `README.md`
-- Implementation rules for agents and developers: `AGENTS.md`
-
-When adding new commands, update implementation, tests, and documentation
-together to keep them consistent.
+- **commander** — Command definitions and argument parsing
+- **ink** — Terminal UI rendering
+- **zod** — Input validation
+- **vitest** — Testing framework
