@@ -168,7 +168,7 @@ export function createMigrateCommand(): Command {
 
       // Build the new lock (even if empty, write it)
       const newLock: SkillLock = {
-        version: '1.0',
+        version: '0.1.0',
         agents: {
           default: { skillsDir: '.agents/skills' },
           'claude-code': { skillsDir: '.claude/skills' },

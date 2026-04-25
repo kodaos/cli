@@ -27,7 +27,7 @@ export interface AgentConfig {
 }
 
 export interface SkillLock {
-  version: '1.0'
+  version: '0.1.0'
   agents: Record<string, AgentConfig>
   skills: Record<string, SkillLockEntry>
 }

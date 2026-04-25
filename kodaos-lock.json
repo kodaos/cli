@@ -1,5 +1,13 @@
 {
-  "version": "1.0",
+  "version": "0.1.0",
+  "agents": {
+    "default": {
+      "skillsDir": ".agents/skills"
+    },
+    "claude-code": {
+      "skillsDir": ".claude/skills"
+    }
+  },
   "skills": {
     "skill-creator": {
       "sourceType": "github",
@@ -18,14 +26,6 @@
       "source": "antfu/skills",
       "path": "skills/vitest",
       "commitHash": "669c7275f7e1379b06b2bcfa593603aead4c983b951c7e8edbc09640aa38d0a1"
-    }
-  },
-  "agents": {
-    "default": {
-      "skillsDir": ".agents/skills"
-    },
-    "claude-code": {
-      "skillsDir": ".claude/skills"
     }
   }
 }
