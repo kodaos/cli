@@ -162,10 +162,7 @@ async function selectSkills(skills: DiscoveredSkill[]): Promise<DiscoveredSkill[
       type: 'checkbox',
       name: 'selected',
       message: 'Select skills to install:',
-      choices: skills.map((s) => ({
-        name: `${s.name} - ${s.description || 'no description'}`,
-        value: s.name,
-      })),
+      choices: skills.map((s) => ({ name: s.name, value: s.name })),
       validate: (answer: string[]) => (answer.length === 0 ? 'Select at least one skill' : true),
     },
   ] as any)
