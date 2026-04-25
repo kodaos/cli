@@ -14,6 +14,7 @@ import {
 } from '../../skills/output'
 import { renderSuccess, renderError } from '../../skills/prompts'
 import { addOptionsSchema } from '../../skills/schema'
+import type { DiscoveredSkill } from '../../skills/types'
 
 export function createAddCommand(): Command {
   const cmd = new Command('add')
@@ -43,7 +44,9 @@ export function createAddCommand(): Command {
     const output: OutputMode = options.output
 
     try {
-      const fullSource = options.path ? `${source} --path=${options.path}` : source
+      const fullSource = options.path
+        ? `${source} --path=${options.path}`
+        : `${source} --path=skills`
       const skillSource = parseGitHubSource(fullSource)
       const skills = await fetchGitHubSkills(skillSource)
 
@@ -51,7 +54,10 @@ export function createAddCommand(): Command {
         exitWithError(output, EXIT_CODES.VALIDATION_ERROR, 'No skills found in the repository.')
       }
 
-      const toInstall = skills
+      // Multi-select UI when --yes is not set
+      const selectedSkills = options.yes ? skills : await selectSkills(skills)
+
+      const toInstall = selectedSkills
 
       // Idempotency: check which skills are already installed
       const lock = await readLock(options.global)
@@ -148,4 +154,20 @@ export function createAddCommand(): Command {
   })
 
   return cmd
+}
+
+async function selectSkills(skills: DiscoveredSkill[]): Promise<DiscoveredSkill[]> {
+  const { selected } = await inquirer.prompt([
+    {
+      type: 'checkbox',
+      name: 'selected',
+      message: 'Select skills to install:',
+      choices: skills.map((s) => ({
+        name: `${s.name} - ${s.description || 'no description'}`,
+        value: s.name,
+      })),
+      validate: (answer: string[]) => (answer.length === 0 ? 'Select at least one skill' : true),
+    },
+  ] as any)
+  return skills.filter((s) => selected.includes(s.name))
 }

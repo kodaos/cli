@@ -82,7 +82,6 @@ async function cloneRepo(source: SkillSource): Promise<string> {
   const destDir = join(TEMP_DIR, `${source.owner}-${source.repo}-${Date.now()}`)
   await mkdir(destDir, { recursive: true })
 
-  const ref = source.path ? `${source.path}` : 'HEAD'
   const cloneUrl = `https://github.com/${source.owner}/${source.repo}`
 
   try {
@@ -97,16 +96,10 @@ async function cloneRepo(source: SkillSource): Promise<string> {
 }
 
 async function findSkillDirs(basePath: string, rootPath?: string): Promise<string[]> {
-  // If rootPath is specified, check if SKILL.md exists directly at that path (no recursion)
+  // If rootPath is specified, deep scan that path for SKILL.md files
   if (rootPath) {
-    const skillPath = join(basePath, rootPath)
-    const skillFile = join(skillPath, 'SKILL.md')
-    try {
-      await access(skillFile)
-      return [skillPath]
-    } catch {
-      return []
-    }
+    const scanDir = join(basePath, rootPath)
+    return deepFindSkillDirs(scanDir)
   }
 
   const skillsDir = join(basePath, 'skills')
@@ -133,30 +126,9 @@ async function findSkillDirs(basePath: string, rootPath?: string): Promise<strin
     // index.json not found or invalid, fall back to scanning skills/* subdirectories
   }
 
-  // Default: scan skills/* subdirectories with SKILL.md
-  try {
-    await access(skillsDir)
-  } catch {
-    return []
-  }
-
-  const entries = await readdir(skillsDir, { withFileTypes: true })
-  const dirs: string[] = []
-
-  for (const entry of entries) {
-    if (entry.isDirectory()) {
-      const skillPath = join(skillsDir, entry.name)
-      const skillFile = join(skillPath, 'SKILL.md')
-      try {
-        await access(skillFile)
-        dirs.push(skillPath)
-      } catch {
-        // SKILL.md not found, skip
-      }
-    }
-  }
-
-  return dirs
+  // Default: deep scan entire repository for SKILL.md files
+  const scanDir = rootPath ? join(basePath, rootPath) : basePath
+  return deepFindSkillDirs(scanDir)
 }
 
 function parseSkillFrontmatter(content: string): { name: string; description: string } {
@@ -173,6 +145,30 @@ function parseSkillFrontmatter(content: string): { name: string; description: st
     name: nameMatch ? nameMatch[1].trim() : '',
     description: descMatch ? descMatch[1].trim() : '',
   }
+}
+
+async function deepFindSkillDirs(dirPath: string): Promise<string[]> {
+  const dirs: string[] = []
+  try {
+    const entries = await readdir(dirPath, { withFileTypes: true })
+    for (const entry of entries) {
+      const fullPath = join(dirPath, entry.name)
+      if (entry.isDirectory()) {
+        const skillFile = join(fullPath, 'SKILL.md')
+        try {
+          await access(skillFile)
+          dirs.push(fullPath)
+        } catch {
+          // Not a skill dir, recurse into subdirectories
+          const subDirs = await deepFindSkillDirs(fullPath)
+          dirs.push(...subDirs)
+        }
+      }
+    }
+  } catch {
+    // Directory doesn't exist
+  }
+  return dirs
 }
 
 async function cleanupTemp(path: string): Promise<void> {
