@@ -67,13 +67,6 @@ kodaos skills migrate vercel
 2. Run `kodaos skills ls` to see installed skills
 3. Run `kodaos skills add <source>` to add new capabilities
 
-## Tech Stack
-
-- **commander** — Command definitions and argument parsing
-- **ink** — Terminal UI rendering
-- **zod** — Input validation
-- **vitest** — Testing framework
-
 ## Agent Interaction
 
 All commands support machine-to-machine interaction through structured output and standardized exit codes.
