@@ -45,8 +45,8 @@ export async function installSkill(
   if (copy) {
     await execAsync(`cp -r "${sourcePath}" "${targetSkillDir}"`)
   } else {
-    console.log(`Cloning ${skill.name}...`)
-    await execAsync(`git clone --depth 1 "${sourcePath}" "${targetSkillDir}"`)
+    // Symlink: copy the skill files directly since sourcePath is already a git clone subdirectory
+    await execAsync(`cp -r "${sourcePath}" "${targetSkillDir}"`)
   }
 
   // Create symlink to .claude/skills

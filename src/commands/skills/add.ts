@@ -98,7 +98,7 @@ export function createAddCommand(): Command {
         return
       }
 
-      // Interactive prompts if not using --yes
+      // Use project-level + symlink by default, --global/--copy flags override
       let installOptions = { global: options.global, copy: options.copy }
 
       if (!options.yes) {
@@ -116,7 +116,8 @@ export function createAddCommand(): Command {
             default: false,
           },
         ])
-        installOptions = { ...installOptions, ...answers }
+        installOptions.global = answers.global ?? options.global
+        installOptions.copy = answers.copy ?? options.copy
       }
 
       // Install new skills (skip already installed)
