@@ -11,26 +11,34 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const TEMP_DIR = join(__dirname, '../../.temp/skills')
 
 export function parseGitHubSource(input: string): SkillSource {
+  // Extract --path= option
+  const pathMatch = input.match(/--path=(.+)$/)
+  const rootPath = pathMatch ? pathMatch[1] : undefined
+  const cleanInput = pathMatch ? input.replace(/--path=.+$/, '').trim() : input
+
   // Handle full GitHub URL
-  const urlMatch = input.match(/github\.com\/([^/]+)\/([^/]+)(?:\/tree\/[^/]+\/(.+))?/)
+  const urlMatch = cleanInput.match(/github\.com\/([^/]+)\/([^/]+)(?:\/tree\/[^/]+\/(.+))?/)
   if (urlMatch) {
     return {
       sourceType: 'github',
       owner: urlMatch[1],
       repo: urlMatch[2].replace('.git', ''),
-      path: urlMatch[3],
+      path: rootPath || urlMatch[3],
       url: input,
     }
   }
 
   // Handle shorthand owner/repo
-  const shorthandMatch = input.match(/^([^/]+)\/([^/]+)$/)
+  const shorthandMatch = cleanInput.match(/^([^/]+)\/([^/]+)$/)
   if (shorthandMatch) {
+    const owner = shorthandMatch[1]
+    const repo = shorthandMatch[2].replace('.git', '')
     return {
       sourceType: 'github',
-      owner: shorthandMatch[1],
-      repo: shorthandMatch[2].replace('.git', ''),
-      url: `https://github.com/${shorthandMatch[1]}/${shorthandMatch[2]}`,
+      owner,
+      repo,
+      url: `https://github.com/${owner}/${repo}`,
+      path: rootPath,
     }
   }
 
@@ -41,7 +49,7 @@ export async function fetchGitHubSkills(source: SkillSource): Promise<Discovered
   const tempPath = await cloneRepo(source)
 
   try {
-    const skillDirs = await findSkillDirs(tempPath)
+    const skillDirs = await findSkillDirs(tempPath, source.path)
     const skills: DiscoveredSkill[] = []
 
     for (const dir of skillDirs) {
@@ -88,7 +96,19 @@ async function cloneRepo(source: SkillSource): Promise<string> {
   return destDir
 }
 
-async function findSkillDirs(basePath: string): Promise<string[]> {
+async function findSkillDirs(basePath: string, rootPath?: string): Promise<string[]> {
+  // If rootPath is specified, check if SKILL.md exists directly at that path (no recursion)
+  if (rootPath) {
+    const skillPath = join(basePath, rootPath)
+    const skillFile = join(skillPath, 'SKILL.md')
+    try {
+      await access(skillFile)
+      return [skillPath]
+    } catch {
+      return []
+    }
+  }
+
   const skillsDir = join(basePath, 'skills')
   const indexFile = join(skillsDir, 'index.json')
 

@@ -1,7 +1,6 @@
 import { Command } from 'commander'
 import { render } from 'ink'
 import inquirer from 'inquirer'
-import React from 'react'
 
 import { parseGitHubSource, fetchGitHubSkills } from '../../skills/github'
 import { installSkill } from '../../skills/installer'
@@ -13,15 +12,14 @@ import {
   exitWithError,
   type OutputMode,
 } from '../../skills/output'
-import { renderSkillList, renderSuccess, renderError } from '../../skills/prompts'
+import { renderSuccess, renderError } from '../../skills/prompts'
 import { addOptionsSchema } from '../../skills/schema'
 
 export function createAddCommand(): Command {
   const cmd = new Command('add')
     .description('Add skills from a GitHub repository')
     .argument('<source>', 'GitHub shorthand (owner/repo) or full GitHub URL')
-    .option('-s, --skill <names...>', 'Specific skills to install (default: all)')
-    .option('-l, --list', 'List available skills without installing')
+    .option('--path <path>', 'Source path to skill directory in the repo')
     .option('-y, --yes', 'Skip confirmation prompts')
     .option('--copy', 'Copy files instead of symlinking')
     .option('-g, --global', 'Install to global directory instead of project')
@@ -45,30 +43,15 @@ export function createAddCommand(): Command {
     const output: OutputMode = options.output
 
     try {
-      const skillSource = parseGitHubSource(source)
+      const fullSource = options.path ? `${source} --path=${options.path}` : source
+      const skillSource = parseGitHubSource(fullSource)
       const skills = await fetchGitHubSkills(skillSource)
 
       if (skills.length === 0) {
         exitWithError(output, EXIT_CODES.VALIDATION_ERROR, 'No skills found in the repository.')
       }
 
-      if (options.list) {
-        if (isJsonMode(output)) {
-          console.log(formatJsonSuccess({ skills }))
-        } else {
-          render(renderSkillList(skills))
-        }
-        return
-      }
-
-      // Filter skills if specified
-      const toInstall = options.skill?.length
-        ? skills.filter((s) => options.skill!.includes(s.name))
-        : skills
-
-      if (toInstall.length === 0) {
-        exitWithError(output, EXIT_CODES.VALIDATION_ERROR, 'No matching skills found.')
-      }
+      const toInstall = skills
 
       // Idempotency: check which skills are already installed
       const lock = await readLock(options.global)

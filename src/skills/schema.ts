@@ -6,13 +6,12 @@ export const sourceSchema = z.string().min(1, 'Source is required')
 
 export const addOptionsSchema = z.object({
   source: sourceSchema,
-  skill: z.array(z.string()).optional(),
-  list: z.boolean().default(false),
   yes: z.boolean().default(false),
   copy: z.boolean().default(false),
   global: z.boolean().default(false),
   output: outputSchema,
   'dry-run': z.boolean().default(false),
+  path: z.string().optional(),
 })
 
 export const removeOptionsSchema = z.object({

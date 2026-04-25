@@ -27,7 +27,6 @@ describe('addOptionsSchema', () => {
       source: 'owner/repo',
     })
     expect(result.success).toBe(true)
-    expect(result.data?.list).toBe(false)
     expect(result.data?.yes).toBe(false)
     expect(result.data?.copy).toBe(false)
     expect(result.data?.global).toBe(false)
