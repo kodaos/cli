@@ -1,5 +1,5 @@
 import { exec } from 'child_process'
-import { readFile } from 'fs/promises'
+import { readFile, mkdir } from 'fs/promises'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { promisify } from 'util'
@@ -8,7 +8,14 @@ import { Command } from 'commander'
 import { render } from 'ink'
 import inquirer from 'inquirer'
 
-import { readLock, updateLockEntry, getSkillsDir, computeFileHash } from '../../skills/lock'
+import {
+  readLock,
+  updateLockEntry,
+  getSkillsDir,
+  getClaudeSkillsDir,
+  createSymlink,
+  computeFileHash,
+} from '../../skills/lock'
 import {
   EXIT_CODES,
   isJsonMode,
@@ -190,11 +197,25 @@ async function updateSingleSkill(
   try {
     console.log(`Updating ${skillName}...`)
     const cloneUrl = `https://github.com/${owner}/${repo}`
-    await execAsync(`git clone --depth 1 "${cloneUrl}" "${tempDir}"`)
+
+    // Use sparse-checkout to only fetch the skill directory
+    await execAsync(`git init "${tempDir}"`)
+    await execAsync(`git -C "${tempDir}" remote add origin "${cloneUrl}"`)
+    await execAsync(`git -C "${tempDir}" sparse-checkout init --cone`)
+    await execAsync(`git -C "${tempDir}" sparse-checkout set "${entry.path}"`)
+    await execAsync(`git -C "${tempDir}" pull origin HEAD --depth 1`)
+
+    // Ensure target directory exists
+    await mkdir(skillsDir, { recursive: true })
+    await mkdir(getClaudeSkillsDir(global), { recursive: true })
 
     // Copy new files
     const sourceSkillDir = join(tempDir, entry.path)
     await execAsync(`rm -rf "${skillPath}" && cp -r "${sourceSkillDir}" "${skillsDir}"`)
+
+    // Recreate symlink in .claude/skills
+    const symlinkPath = join(getClaudeSkillsDir(global), skillName)
+    await createSymlink(skillPath, symlinkPath)
 
     // Update lock with new hash
     const skillFile = join(skillPath, 'SKILL.md')
