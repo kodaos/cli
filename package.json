@@ -41,8 +41,5 @@
     "vite-plus": "^0.1.18",
     "vitest": "^4.1.4"
   },
-  "engines": {
-    "node": ">=20"
-  },
   "packageManager": "pnpm@10.33.1"
 }
