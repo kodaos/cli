@@ -46,7 +46,7 @@ export function parseGitHubSource(input: string): SkillSource {
 }
 
 export async function fetchGitHubSkills(source: SkillSource): Promise<DiscoveredSkill[]> {
-  const tempPath = await cloneRepo(source)
+  const tempPath = await cloneRepoAtHead(source)
 
   try {
     const skillDirs = await findSkillDirs(tempPath, source.path)
@@ -78,7 +78,7 @@ export async function fetchGitHubSkills(source: SkillSource): Promise<Discovered
   }
 }
 
-async function cloneRepo(source: SkillSource): Promise<string> {
+export async function cloneRepoAtHead(source: SkillSource): Promise<string> {
   const destDir = join(TEMP_DIR, `${source.owner}-${source.repo}-${Date.now()}`)
   await mkdir(destDir, { recursive: true })
 
@@ -91,6 +91,20 @@ async function cloneRepo(source: SkillSource): Promise<string> {
     // Fallback: try full clone
     await execAsync(`git clone --depth 1 ${cloneUrl} "${destDir}"`)
   }
+
+  return destDir
+}
+
+export async function fetchRepoAtRef(source: SkillSource, ref: string): Promise<string> {
+  const destDir = join(TEMP_DIR, `${source.owner}-${source.repo}-${ref.slice(0, 7)}-${Date.now()}`)
+  await mkdir(destDir, { recursive: true })
+
+  const cloneUrl = `https://github.com/${source.owner}/${source.repo}`
+
+  await execAsync(`git init "${destDir}"`)
+  await execAsync(`git -C "${destDir}" remote add origin "${cloneUrl}"`)
+  await execAsync(`git -C "${destDir}" fetch --depth 1 origin "${ref}"`)
+  await execAsync(`git -C "${destDir}" checkout FETCH_HEAD`)
 
   return destDir
 }

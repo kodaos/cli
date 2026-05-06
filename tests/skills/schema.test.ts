@@ -5,6 +5,7 @@ import {
   removeOptionsSchema,
   updateOptionsSchema,
   migrateOptionsSchema,
+  installOptionsSchema,
 } from '../../src/skills/schema.js'
 
 describe('addOptionsSchema', () => {
@@ -126,5 +127,28 @@ describe('migrateOptionsSchema', () => {
     })
     expect(result.success).toBe(true)
     expect(result.data?.global).toBe(true)
+  })
+})
+
+describe('installOptionsSchema', () => {
+  it('parses empty input', () => {
+    const result = installOptionsSchema.safeParse({})
+    expect(result.success).toBe(true)
+  })
+
+  it('applies defaults', () => {
+    const result = installOptionsSchema.safeParse({})
+    expect(result.success).toBe(true)
+    expect(result.data?.global).toBe(false)
+    expect(result.data?.yes).toBe(false)
+    expect(result.data?.output).toBe('text')
+    expect(result.data?.['dry-run']).toBe(false)
+  })
+
+  it('rejects invalid output mode', () => {
+    const result = installOptionsSchema.safeParse({
+      output: 'xml',
+    })
+    expect(result.success).toBe(false)
   })
 })

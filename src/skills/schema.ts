@@ -45,8 +45,16 @@ export const listOptionsSchema = z.object({
   output: outputSchema,
 })
 
+export const installOptionsSchema = z.object({
+  global: z.boolean().default(false),
+  yes: z.boolean().default(false),
+  output: outputSchema,
+  'dry-run': z.boolean().default(false),
+})
+
 export type AddOptions = z.infer<typeof addOptionsSchema>
 export type RemoveOptions = z.infer<typeof removeOptionsSchema>
 export type UpdateOptions = z.infer<typeof updateOptionsSchema>
 export type MigrateOptions = z.infer<typeof migrateOptionsSchema>
 export type ListOptions = z.infer<typeof listOptionsSchema>
+export type InstallOptions = z.infer<typeof installOptionsSchema>

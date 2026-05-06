@@ -3,6 +3,7 @@
 import { Command } from 'commander'
 
 import { createAddCommand } from './commands/skills/add.js'
+import { createInstallCommand } from './commands/skills/install.js'
 import { createListCommand } from './commands/skills/list.js'
 import { createMigrateCommand } from './commands/skills/migrate.js'
 import { createRemoveCommand } from './commands/skills/remove.js'
@@ -20,6 +21,7 @@ const skillsCommand = program
   .command('skills')
   .description('Manage skills')
   .addCommand(createAddCommand())
+  .addCommand(createInstallCommand())
   .addCommand(createRemoveCommand())
   .addCommand(createListCommand())
   .addCommand(createUpdateCommand())

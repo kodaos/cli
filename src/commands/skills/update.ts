@@ -1,5 +1,5 @@
 import { exec } from 'child_process'
-import { readFile, mkdir } from 'fs/promises'
+import { mkdir } from 'fs/promises'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { promisify } from 'util'
@@ -8,13 +8,13 @@ import { Command } from 'commander'
 import { render } from 'ink'
 import inquirer from 'inquirer'
 
+import { writeInstalledSkillCommitHash } from '../../skills/installer'
 import {
   readLock,
   updateLockEntry,
   getSkillsDir,
   getClaudeSkillsDir,
   createSymlink,
-  computeFileHash,
 } from '../../skills/lock'
 import {
   EXIT_CODES,
@@ -217,10 +217,10 @@ async function updateSingleSkill(
     const symlinkPath = join(getClaudeSkillsDir(global), skillName)
     await createSymlink(skillPath, symlinkPath)
 
-    // Update lock with new hash
-    const skillFile = join(skillPath, 'SKILL.md')
-    const content = await readFile(skillFile, 'utf-8')
-    const newHash = await computeFileHash(content)
+    // Update lock with new commit hash
+    const { stdout } = await execAsync(`git -C "${tempDir}" rev-parse HEAD`)
+    const commitHash = stdout.trim()
+    await writeInstalledSkillCommitHash(skillPath, commitHash)
 
     await updateLockEntry(
       skillName,
@@ -228,7 +228,7 @@ async function updateSingleSkill(
         sourceType: 'github',
         source: entry.source,
         path: entry.path,
-        commitHash: newHash,
+        commitHash,
       },
       global,
     )

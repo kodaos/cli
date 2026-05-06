@@ -35,6 +35,7 @@ The CLI currently focuses on **skills** management — reusable AI capabilities 
 | ---------------------------------- | ----- | -------------------------------------- |
 | `kodaos skills list`               | `ls`  | List installed skills                  |
 | `kodaos skills add <source>`       | -     | Add skills from a GitHub repository    |
+| `kodaos skills install`            | -     | Install skills from `kodaos-lock.json` |
 | `kodaos skills remove <skills...>` | `rm`  | Remove installed skills                |
 | `kodaos skills update [skills...]` | -     | Update skills to latest versions       |
 | `kodaos skills migrate [platform]` | -     | Migrate skills from external platforms |
@@ -47,6 +48,9 @@ kodaos skills ls
 
 # Add a skill from a GitHub repo
 kodaos skills add username/repo
+
+# Install skills declared in lock file
+kodaos skills install
 
 # Remove a skill
 kodaos skills rm my-skill
@@ -92,6 +96,7 @@ State-modifying commands support `--dry-run` to preview changes without applying
 
 ```bash
 kodaos skills add username/repo --dry-run
+kodaos skills install --dry-run
 kodaos skills remove my-skill --dry-run
 kodaos skills update --dry-run
 ```
@@ -125,5 +130,12 @@ When using `--output json`, errors follow this schema:
 All state-modifying commands are idempotent:
 
 - `kodaos skills add <skill>` — If already installed, returns success
+- `kodaos skills install` — If already installed locally, skips and returns success
 - `kodaos skills remove <skill>` — If not installed, returns success
 - `kodaos skills update [skill]` — If already at latest, returns success
+
+### Lock File Version Pinning
+
+`kodaos-lock.json` uses `skills.<name>.commitHash` as a **git commit SHA** to pin a
+skill version. `kodaos skills install` resolves each skill to the exact commit
+recorded in the lock file.
