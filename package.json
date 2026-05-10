@@ -1,6 +1,6 @@
 {
   "name": "@kodaos/cli",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": false,
   "description": "A CLI for managing the AI ​​ecosystem with Kodaos",
   "keywords": [
