@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires kodaos cli
 metadata:
   author: kodaos
-  version: 0.0.4
+  version: 0.0.5
 ---
 
 # kodaos CLI
