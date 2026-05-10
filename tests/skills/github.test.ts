@@ -1,6 +1,10 @@
+import { mkdtemp, mkdir, rm, writeFile } from 'fs/promises'
+import { tmpdir } from 'os'
+import { join } from 'path'
+
 import { describe, it, expect } from 'vitest'
 
-import { parseGitHubSource } from '../../src/skills/github'
+import { deepFindSkillDirs, parseGitHubSource } from '../../src/skills/github'
 import type { SkillsIndexFile } from '../../src/skills/types'
 
 describe('parseGitHubSource', () => {
@@ -53,5 +57,29 @@ describe('SkillsIndexFile', () => {
   it('supports empty skills array', () => {
     const index: SkillsIndexFile = { skills: [] }
     expect(index.skills).toHaveLength(0)
+  })
+})
+
+describe('deepFindSkillDirs', () => {
+  it('includes current directory when it is a skill directory', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'kodaos-skills-'))
+    const skillDir = join(root, 'better-auth', 'best-practices')
+    const skillContent = `---
+name: better-auth-best-practices
+description: Better Auth integration guide
+---
+`
+
+    try {
+      await mkdir(skillDir, { recursive: true })
+      await writeFile(join(skillDir, 'SKILL.md'), skillContent, 'utf-8')
+
+      const dirs = await deepFindSkillDirs(skillDir)
+
+      expect(dirs).toContain(skillDir)
+      expect(dirs).toHaveLength(1)
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
   })
 })

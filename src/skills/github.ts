@@ -161,9 +161,19 @@ function parseSkillFrontmatter(content: string): { name: string; description: st
   }
 }
 
-async function deepFindSkillDirs(dirPath: string): Promise<string[]> {
+export async function deepFindSkillDirs(dirPath: string): Promise<string[]> {
   const dirs: string[] = []
   try {
+    // Include the directory itself when it directly contains a SKILL.md file.
+    const currentDirSkillFile = join(dirPath, 'SKILL.md')
+    try {
+      await access(currentDirSkillFile)
+      dirs.push(dirPath)
+      return dirs
+    } catch {
+      // Current directory is not a skill dir, continue scanning subdirectories.
+    }
+
     const entries = await readdir(dirPath, { withFileTypes: true })
     for (const entry of entries) {
       const fullPath = join(dirPath, entry.name)
