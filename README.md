@@ -40,6 +40,15 @@ The CLI currently focuses on **skills** management — reusable AI capabilities 
 | `kodaos skills update [skills...]` | -     | Update skills to latest versions       |
 | `kodaos skills migrate [platform]` | -     | Migrate skills from external platforms |
 
+### Sessions Management
+
+The CLI also provides **sessions** management for supported AI agents.
+
+| Command                       | Alias | Description                                         |
+| ----------------------------- | ----- | --------------------------------------------------- |
+| `kodaos sessions list`        | `ls`  | List Claude/Codex sessions with source/date filters |
+| `kodaos sessions resume <id>` | -     | Resume a Claude or Codex session by id              |
+
 ### Examples
 
 ```bash
@@ -63,6 +72,18 @@ kodaos skills update skill-a skill-b
 
 # Migrate skills from another platform
 kodaos skills migrate vercel
+
+# List sessions from all sources
+kodaos sessions list
+
+# List only Claude sessions from date range
+kodaos sessions list --source claude --from 2026-05-01 --to 2026-05-10
+
+# Resume a session by id
+kodaos sessions resume <session-id>
+
+# Preview resume command without executing
+kodaos sessions resume <session-id> --dry-run
 ```
 
 ## Quick Start

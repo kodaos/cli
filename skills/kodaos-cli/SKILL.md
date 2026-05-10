@@ -10,7 +10,7 @@ metadata:
 
 # kodaos CLI
 
-CLI for managing the AI ecosystem with Kodaos. Provides skill management commands for installing, removing, listing, updating, and migrating skills from GitHub repositories.
+CLI for managing the AI ecosystem with Kodaos. Provides skills and sessions commands for installation, updates, listing, migration, and session resume workflows.
 
 ## Commands
 
@@ -107,9 +107,48 @@ kodaos skills migrate vercel ./skills-lock.json --global
 - `-g, --global` — Write to global lock file
 - `-y, --yes` — Skip confirmation prompts
 
+### `kodaos sessions list`
+
+List Claude/Codex sessions with optional source and date filtering.
+
+```
+kodaos sessions list
+kodaos sessions list --source claude --limit 20
+kodaos sessions list --from 2026-05-01 --to 2026-05-10 --output json
+```
+
+**Options:**
+
+- `-s, --source <source>` — Session source (`claude`, `codex`, `all`)
+- `--from <date>` — Start date filter (`YYYY-MM-DD`)
+- `--to <date>` — End date filter (`YYYY-MM-DD`)
+- `--limit <number>` — Maximum number of results
+- `-o, --output <mode>` — Output mode (`text`, `json`)
+
+### `kodaos sessions resume <id>`
+
+Resume a Claude or Codex session by id.
+
+```
+kodaos sessions resume <session-id>
+kodaos sessions resume <session-id> --source codex
+kodaos sessions resume <session-id> --dry-run
+```
+
+**Arguments:**
+
+- `<id>` — Session id to resume
+
+**Options:**
+
+- `-s, --source <source>` — Source override (`claude`, `codex`, `auto`)
+- `--dry-run` — Print command preview without executing
+- `-o, --output <mode>` — Output mode (`text`, `json`)
+
 ## Architecture
 
-- **Lock-driven design** — `kodaos-lock.json` tracks installed skills with source repository and SHA256 commit hash
+- **Lock-driven design** — `kodaos-lock.json` tracks installed skills with source repository and git commit hash
 - **Two-tier storage** — Skills are stored in `.agents/skills/` with symlinks created in `.claude/skills/`
 - **Git sparse checkout** — Uses `git clone --depth 1 --filter=blob:none --sparse` for efficient cloning
 - **Skill discovery** — Skills are discovered via `skills/index.json` (explicit list) or by scanning `skills/*/` directories containing `SKILL.md`
+- **Session adapters** — Sessions are aggregated from `~/.claude/history.jsonl` and `~/.codex/session_index.jsonl` via a normalized record model

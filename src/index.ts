@@ -3,6 +3,8 @@
 import { Command } from 'commander'
 
 import packageJson from '../package.json' with { type: 'json' }
+import { createSessionsListCommand } from './commands/sessions/list.js'
+import { createSessionsResumeCommand } from './commands/sessions/resume.js'
 import { createAddCommand } from './commands/skills/add.js'
 import { createInstallCommand } from './commands/skills/install.js'
 import { createListCommand } from './commands/skills/list.js'
@@ -33,6 +35,16 @@ const skillsCommand = program
 
 skillsCommand.action(() => {
   skillsCommand.help()
+})
+
+const sessionsCommand = program
+  .command('sessions')
+  .description('Manage AI agent sessions')
+  .addCommand(createSessionsListCommand())
+  .addCommand(createSessionsResumeCommand())
+
+sessionsCommand.action(() => {
+  sessionsCommand.help()
 })
 
 program.parse()
