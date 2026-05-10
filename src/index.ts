@@ -2,6 +2,7 @@
 
 import { Command } from 'commander'
 
+import packageJson from '../package.json' with { type: 'json' }
 import { createAddCommand } from './commands/skills/add.js'
 import { createInstallCommand } from './commands/skills/install.js'
 import { createListCommand } from './commands/skills/list.js'
@@ -11,7 +12,10 @@ import { createUpdateCommand } from './commands/skills/update.js'
 
 const program = new Command()
 
-program.name('kodaos').description('CLI for managing the AI ecosystem with Kodaos').version('0.0.0')
+program
+  .name('kodaos')
+  .description('CLI for managing the AI ecosystem with Kodaos')
+  .version(packageJson.version)
 
 program.action(() => {
   program.help()
